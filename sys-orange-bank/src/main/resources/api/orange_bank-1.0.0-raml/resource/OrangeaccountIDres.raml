@@ -1,0 +1,45 @@
+#%RAML 1.0 ResourceType
+get:
+  responses:
+    200:
+      body:
+        application/json:
+          example: 
+            !include ../example/user.raml
+put:
+  body:
+    application/json:
+      example:
+        
+          {
+            "OrangeaccountID": "123",
+             "first_name": "Betelehem",
+            "last_name": "Tilahun",
+            "account_no": "2343423453",
+            "phone_no": "+251848585858",
+            "card_no": "O123"
+        }
+        
+  responses:
+    200:
+      body:
+        application/json:
+          example:
+             {
+              "message": " Done !"
+              }  
+delete:
+  body:
+    application/json:
+      example:
+        {
+          "OrangeaccountID": "123"
+        }
+  responses:
+    200:
+      body:
+        application/json:
+          example:
+             {
+              "message": " Done !"
+              }    

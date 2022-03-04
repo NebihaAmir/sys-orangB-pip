@@ -1,0 +1,9 @@
+#%RAML 1.0 Library
+usage: Collection of API Fragement 
+
+resourceTypes:
+  OrangeaccountRes: !include resource/OrangeaccountRes.raml
+  OrangeaccountIDres: !include resource/OrangeaccountIDres.raml
+traits:
+  errorCode: !include traits/errorCodes.raml
+  security: !include  traits/security.raml

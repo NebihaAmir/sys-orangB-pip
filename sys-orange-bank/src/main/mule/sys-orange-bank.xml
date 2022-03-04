@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<configuration-properties doc:name="Configuration properties" doc:id="accffacb-7672-4d0c-8fa5-33789f84bb9c" file="dev.yaml" />
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="6821ba09-a741-4fac-9fcd-35b5c41c2d72" >
+		<db:my-sql-connection host="${db.hostname}" port="${db.port}" user="${db.username}" password="${db.password}" database="${db.name}" />
+	</db:config>
+	<sub-flow name="Confirmation" doc:id="b2efc9b3-c10a-4dbe-a58d-5cea54f566e9" >
+		<set-payload value="Done !" doc:name="Set Payload" doc:id="4fefd668-5e85-44af-9d44-89c29c355d81" />
+	</sub-flow>
+	<sub-flow name="sys-getAccountInfo" doc:id="f8fdbddb-90a7-4dd0-b6ea-acc49a96718b" >
+		<db:select doc:id="00384055-d004-48cd-abed-7e7b0c9bf042" doc:name="getAccountInfo" config-ref="Database_Config">
+			<db:sql ><![CDATA[select * from orange_bank;]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="bd0b4eaa-8992-42bb-a458-249ea978b9b5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map {
+	first_name: $.first_name,
+	last_name: $.last_name,
+	account_no: $.account_no,
+	card_no: $.card_no,
+	OrangeaccountID: $.OrangeaccountID
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="sys-getOneAccountInfo" doc:id="2b000d36-be30-4872-8530-ccabc29bde37" >
+		<db:select doc:name="get_AccountInfo_By_OrangeaccountID" doc:id="cd1d1ca2-1884-4c96-94f5-fd8c01ce2931" config-ref="Database_Config">
+			<db:sql ><![CDATA[select * from orange_bank where OrangeaccountID = :OrangeaccountID]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	OrangeaccountID: attributes.uriParams.'OrangeaccountID'
+	
+	}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="21549811-e4f2-428c-994e-5a8c4ddb00d8" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="sys-postAccounttInfo" doc:id="61db03dd-bfc0-4028-9002-f75332840deb" >
+		<db:insert doc:name="post_AccountInfo" doc:id="5baac417-97c3-48ed-bd8d-02b7ce7c9a0d" config-ref="Database_Config">
+			<db:sql ><![CDATA[insert into orange_bank (first_name, last_name, phone_no, account_no, card_no, OrangeaccountID)
+values
+(:first_name, :last_name, :phone_no, :account_no, :card_no, :OrangeaccountID);]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	first_name: payload.first_name,
+	last_name: payload.last_name,
+	phone_no: payload.phone_no,
+	account_no: payload.account_no,
+	card_no: payload.card_no,
+	OrangeaccountID: payload.OrangeaccountID
+	
+}]]]></db:input-parameters>
+		</db:insert>
+		<flow-ref doc:name="Confirmation" doc:id="b8a702bd-c5ce-4646-9bef-91452c1ca986" name="Confirmation"/>
+	</sub-flow>
+	<sub-flow name="sys-PutAccountInfo" doc:id="d430a971-458b-49f1-bee6-bfa466398767" >
+		<db:update doc:name="Update" doc:id="a6181c04-2b01-4266-bd75-4d05ab950a9e" config-ref="Database_Config">
+			<db:sql ><![CDATA[UPDATE orange_bank SET first_name = :first_name, last_name = :last_name,
+phone_no = :phone_no, 
+account_no = :account_no, card_no = :card_no
+WHERE OrangeaccountID = :OrangeaccountID;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	OrangeaccountID: attributes.uriParams.'OrangeaccountID',
+	first_name: payload.first_name,
+	last_name: payload.last_name,
+	phone_no: payload.phone_no,
+	account_no: payload.account_no,
+	card_no: payload.card_no
+	
+}]]]></db:input-parameters>
+		</db:update>
+		<flow-ref doc:name="Confirmation" doc:id="c3733108-138a-4cc4-b6c4-9a75bb43efd9" name="Confirmation" />
+	</sub-flow>
+	<sub-flow name="sys-deleteAccountInfo" doc:id="addbf385-5086-4675-ad0f-065339443a78" >
+		<db:delete doc:name="Delete" doc:id="642484b7-1093-42c4-bb47-186d24ded56b" config-ref="Database_Config">
+			<db:sql ><![CDATA[delete from orange_bank where OrangeaccountID = :OrangeaccountID]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	OrangeaccountID: attributes.uriParams.'OrangeaccountID'
+	
+	}]]]></db:input-parameters>
+		</db:delete>
+		<flow-ref doc:name="Confirmation" doc:id="26b97ee2-f5d5-4c72-8031-63e83f118a02" name="Confirmation"/>
+	</sub-flow>
+</mule>

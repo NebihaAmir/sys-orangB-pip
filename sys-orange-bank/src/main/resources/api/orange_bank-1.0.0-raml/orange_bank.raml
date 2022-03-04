@@ -1,0 +1,17 @@
+#%RAML 1.0
+title: orange_Bank
+uses: 
+  lib: library.raml
+    
+/Orangeaccount:
+  type:
+    lib.OrangeaccountRes
+  is:
+    - lib.errorCode
+    - lib.security
+  /{OrangeaccountID}:
+    type:
+      lib.OrangeaccountIDres   
+    is:
+      - lib.errorCode   
+      - lib.security    
